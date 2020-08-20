@@ -1,0 +1,98 @@
+import serial
+import RPi.GPIO as GPIO
+import time
+import sys
+import Adafruit_DHT
+from picamera import PiCamera
+from time import sleep
+from google.cloud import storage
+from firebase import firebase
+import os
+import pyrebase
+import urllib2
+
+
+
+imageBlob = bucket.blob("/")
+imagePath = "/home/pi/Desktop/image.jpg"
+imageBlob = bucket.blob("image.jpg")
+
+camera = PiCamera()
+camera.resolution = (480, 480)
+
+try:
+    while True:
+
+        ser = serial.Serial('/dev/ttyACM0', 9600)
+        val=ser.readline(100)
+	val=val.strip()
+	x=val.split(",")
+	hbp=x[0]
+	lbp=x[1]
+	bpm=x[2]
+	hbp=int(hbp)
+	lbp=int(lbp)
+	bpm=int(bpm)
+	humidity, temperature = Adafruit_DHT.read_retry(11, 4)
+
+	#writing data in thinkspeak
+        finalURL = URL +"&field1=%s"%(temperature, bpm, hbp, lbp)#thinkspeak
+	a = urllib2.urlopen(finalURL)
+	a.read()
+	a.close()
+
+	data={"Temperature":temperature,"High_BP":hbp,"Low_BP":lbp,"Heart_Beat":bpm}
+	db.update(data)
+
+        print ('Temp: {0:0.1f} C ').format(temperature)   
+        print('High BP : %d' %hbp)
+	print('Low BP : %d' %lbp)
+        print('Heart Beat is : %d' %bpm)
+	
+	camera.start_preview()
+	sleep(5)
+	camera.capture('/home/pi/Desktop/image.jpg')
+	camera.stop_preview()
+	imageBlob.upload_from_filename(imagePath)
+
+except KeyboardInterrupt:
+  GPIO.cleanup()
+  exit()
+
+#database: https://patient-monitoring-syste-8702b.firebaseio.com/
+#storage: gs://patient-monitoring-syste-8702b.appspot.com
+
+
+//serial conneted bp sensor
+
+
+
+
+//Code for Arduino by Sugad Anandrao Mankar & Jurs
+//Just Connect Tx pin to Arduino Rx 0 pin  and run below code
+// Demo program for Arduino MEGA2560 board and sensor with serial output
+char sbuffer[30], ch;
+unsigned char pos;
+unsigned char read1, read2, read3;
+int a=0;
+String val[2];
+
+
+void setup(){
+ Serial.begin(9600); // Serial is used for output on PCs "Serial Monitor"
+ Serial1.begin(9600); // Serial1 is used for serial input from connected sensor
+}
+
+char mygetchar(void)
+{ //receive serial character from sensor (blocking while nothing received)
+ while (!Serial.available());
+ return Serial.read();
+}
+
+
+void loop()
+{
+ ch = mygetchar(); //loop till character received
+ Serial.print(ch);
+}// end loop
+
