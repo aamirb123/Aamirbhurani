@@ -1,0 +1,27 @@
+//Code for Arduino by Sugad Anandrao Mankar & Jurs
+//Just Connect Tx pin to Arduino Rx 0 pin  and run below code
+// Demo program for Arduino MEGA2560 board and sensor with serial output
+char sbuffer[30], ch;
+unsigned char pos;
+unsigned char read1, read2, read3;
+int a=0;
+String val[2];
+
+
+void setup(){
+ Serial.begin(9600); // Serial is used for output on PCs "Serial Monitor"
+ Serial1.begin(9600); // Serial1 is used for serial input from connected sensor
+}
+
+char mygetchar(void)
+{ //receive serial character from sensor (blocking while nothing received)
+ while (!Serial.available());
+ return Serial.read();
+}
+
+
+void loop()
+{
+ ch = mygetchar(); //loop till character received
+ Serial.print(ch);
+}// end loop
